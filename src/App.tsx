@@ -23,7 +23,7 @@ export function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
 
-        <Route element={<DashboardLayout><Outlet /></DashboardLayout>}>
+        <Route element={<DashboardLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<StudentDashboard />} />
           <Route path="/events" element={<EventsPage />} />
