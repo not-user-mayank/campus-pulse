@@ -1,30 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, BookOpen, Clock, MapPin, AlertCircle } from 'lucide-react';
 import { AcademicCalendarPage } from './AcademicCalendarPage';
 
+interface EventItem {
+  id: string;
+  type: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+}
+
 export function CalendarPage() {
   const [activeTab, setActiveTab] = useState<'personal' | 'academic'>('personal');
+  const [myEvents, setMyEvents] = useState<EventItem[]>([]);
 
-  const personalEvents = [
-    {
-      id: 1,
-      title: 'AI & ML Workshop',
-      date: 'Sept 15, 2026',
-      time: '10:00 AM - 01:00 PM',
-      location: 'ALC Lab 3, SRM AP',
-      type: 'Workshop',
-      status: 'Confirmed',
-    },
-    {
-      id: 2,
-      title: 'HackSRM 2026 Briefing',
-      date: 'Sept 20, 2026',
-      time: '02:00 PM - 04:00 PM',
-      location: 'Auditorium Block',
-      type: 'Competition',
-      status: 'Confirmed',
-    },
-  ];
+  useEffect(() => {
+    const saved = localStorage.getItem('registeredEvents');
+    if (saved) {
+      try {
+        const registeredEvents: unknown = JSON.parse(saved);
+        if (Array.isArray(registeredEvents)) {
+          setMyEvents(
+            registeredEvents.filter(
+              (event): event is EventItem =>
+                typeof event === 'object' &&
+                event !== null &&
+                typeof (event as EventItem).id === 'string',
+            ),
+          );
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -46,7 +56,7 @@ export function CalendarPage() {
             }`}
           >
             <Calendar className="w-4 h-4" />
-            My Schedule
+            My Schedule ({myEvents.length})
           </button>
           <button
             onClick={() => setActiveTab('academic')}
@@ -65,26 +75,31 @@ export function CalendarPage() {
       {activeTab === 'personal' ? (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-            Upcoming Registered Events
+            Registered Events
           </h2>
-          {personalEvents.length === 0 ? (
+          {myEvents.length === 0 ? (
             <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
               <AlertCircle className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-              <p className="text-slate-600 dark:text-slate-400 font-medium">No upcoming events</p>
+              <p className="text-slate-600 dark:text-slate-400 font-medium">
+                No registered events yet
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Go to the Events tab and click "Register Now" to add events here.
+              </p>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              {personalEvents.map((evt) => (
+              {myEvents.map((evt) => (
                 <div
                   key={evt.id}
                   className="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-3"
                 >
                   <div className="flex justify-between items-start">
-                    <span className="px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">
+                    <span className="px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">
                       {evt.type}
                     </span>
                     <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded">
-                      {evt.status}
+                      Confirmed
                     </span>
                   </div>
                   <h3 className="font-semibold text-slate-900 dark:text-white">{evt.title}</h3>

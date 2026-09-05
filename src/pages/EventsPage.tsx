@@ -1,135 +1,140 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, MapPin, Clock, CheckCircle, Plus } from 'lucide-react';
 
-interface Event {
+export interface EventItem {
   id: string;
   title: string;
-  category: string;
   date: string;
-  startTime: string;
-  endTime: string;
+  time: string;
   location: string;
-  capacity: number;
-  registeredCount: number;
-  organizer: string;
+  type: string;
+  description: string;
 }
 
-export const EventsPage = () => {
-  const [registeredEventIds, setRegisteredEventIds] = useState<string[]>([]);
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: '1',
-      title: 'Aloha Freshers Fest',
-      category: 'Cultural',
-      date: '2026-09-11',
-      startTime: '17:00',
-      endTime: '21:00',
-      location: 'University Auditorium',
-      capacity: 500,
-      registeredCount: 498,
-      organizer: 'Directorate of Student Affairs',
-    },
-    {
-      id: '2',
-      title: 'AI & Web3 Hackathon Briefing',
-      category: 'Tech',
-      date: '2026-09-11',
-      startTime: '18:00',
-      endTime: '20:00',
-      location: 'ALC Lab 3',
-      capacity: 60,
-      registeredCount: 60,
-      organizer: 'Dept of CSE',
-    },
-    {
-      id: '3',
-      title: 'PhySpark Physics Workshop',
-      category: 'Academic',
-      date: '2026-09-19',
-      startTime: '10:00',
-      endTime: '13:00',
-      location: 'Science Block Hall B',
-      capacity: 100,
-      registeredCount: 42,
-      organizer: 'Department of Physics',
-    },
-  ]);
+export const INITIAL_EVENTS: EventItem[] = [
+  {
+    id: '1',
+    title: 'AI & ML Workshop',
+    date: 'Sept 15, 2026',
+    time: '10:00 AM - 01:00 PM',
+    location: 'ALC Lab 3, SRM AP',
+    type: 'Workshop',
+    description: 'Hands-on session covering foundation models and neural networks.',
+  },
+  {
+    id: '2',
+    title: 'HackSRM 2026',
+    date: 'Sept 20, 2026',
+    time: '02:00 PM - 04:00 PM',
+    location: 'Auditorium Block',
+    type: 'Competition',
+    description: 'The annual 24-hour flagship hackathon at SRM University AP.',
+  },
+  {
+    id: '3',
+    title: 'Web3 & Security Seminar',
+    date: 'Sept 28, 2026',
+    time: '11:00 AM - 01:00 PM',
+    location: 'Seminar Hall 2',
+    type: 'Seminar',
+    description: 'Explore smart contract audits and decentralized identity.',
+  },
+];
 
-  const handleRegister = (targetEvent: Event) => {
-    // Check if already registered
-    if (registeredEventIds.includes(targetEvent.id)) return;
+export function EventsPage() {
+  const [registeredIds, setRegisteredIds] = useState<string[]>([]);
 
-    // Time Clash Detection: Same date & overlapping time window
-    const registeredEvents = events.filter((e) => registeredEventIds.includes(e.id));
-    const hasClash = registeredEvents.some((e) => {
-      if (e.date !== targetEvent.date) return false;
-      return targetEvent.startTime < e.endTime && targetEvent.endTime > e.startTime;
-    });
-
-    if (hasClash) {
-      alert(`⚠️ Time Clash Warning: You are already registered for another event on ${targetEvent.date} during this time slot! Double booking is not allowed.`);
-      return;
+  useEffect(() => {
+    const saved = localStorage.getItem('registeredEvents');
+    if (saved) {
+      try {
+        setRegisteredIds(JSON.parse(saved));
+      } catch (e) {
+        console.error(e);
+      }
     }
+  }, []);
 
-    // Capacity & Waitlist Check
-    if (targetEvent.registeredCount >= targetEvent.capacity) {
-      alert(`Joined Waitlist for "${targetEvent.title}"! You will receive a notification if a seat opens up.`);
-      return;
+  const toggleRegister = (event: EventItem) => {
+    let updated: string[];
+    if (registeredIds.includes(event.id)) {
+      updated = registeredIds.filter((id) => id !== event.id);
+    } else {
+      updated = [...registeredIds, event.id];
     }
-
-    // Success Registration
-    setRegisteredEventIds([...registeredEventIds, targetEvent.id]);
-    setEvents(events.map((e) => (e.id === targetEvent.id ? { ...e, registeredCount: e.registeredCount + 1 } : e)));
-    alert(`Successfully registered for "${targetEvent.title}"!`);
+    setRegisteredIds(updated);
+    localStorage.setItem('registeredEvents', JSON.stringify(updated));
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-white">Campus Events</h1>
-        <p className="text-gray-400 text-sm">Discover and register for upcoming university events</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Campus Events</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Browse and register for upcoming events. Registered events appear automatically in your calendar.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.map((event) => {
-          const isRegistered = registeredEventIds.includes(event.id);
-          const isFull = event.registeredCount >= event.capacity;
-
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {INITIAL_EVENTS.map((evt) => {
+          const isRegistered = registeredIds.includes(evt.id);
           return (
-            <div key={event.id} className="p-5 bg-gray-800/90 border border-gray-700 rounded-xl space-y-3 flex flex-col justify-between">
+            <div
+              key={evt.id}
+              className="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between space-y-4"
+            >
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                    {event.category}
+                <div className="flex justify-between items-start">
+                  <span className="px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">
+                    {evt.type}
                   </span>
-                  <span className="text-xs text-gray-400">{event.organizer}</span>
+                  {isRegistered && (
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Registered
+                    </span>
+                  )}
                 </div>
-                <h2 className="text-lg font-bold text-white">{event.title}</h2>
-                <div className="text-sm text-gray-300 space-y-1">
-                  <p>📅 {event.date}</p>
-                  <p>⏰ {event.startTime} - {event.endTime}</p>
-                  <p>📍 {event.location}</p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Seats: <span className="font-semibold text-white">{event.registeredCount} / {event.capacity}</span>
-                  </p>
-                </div>
+                <h3 className="font-bold text-lg text-slate-900 dark:text-white">{evt.title}</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {evt.description}
+                </p>
               </div>
 
-              <button
-                onClick={() => handleRegister(event)}
-                className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
-                  isRegistered
-                    ? 'bg-green-600/20 text-green-400 border border-green-500/30 cursor-default'
-                    : isFull
-                    ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-              >
-                {isRegistered ? '✓ Registered' : isFull ? 'Join Waitlist' : 'Register Now'}
-              </button>
+              <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-700/50">
+                <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{evt.date} • {evt.time}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>{evt.location}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => toggleRegister(evt)}
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                    isRegistered
+                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-rose-50 hover:text-rose-600'
+                      : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20'
+                  }`}
+                >
+                  {isRegistered ? (
+                    'Unregister'
+                  ) : (
+                    <>
+                      <Plus className="w-3.5 h-3.5" /> Register Now
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           );
         })}
       </div>
     </div>
   );
-};
+}
+
+export default EventsPage;
