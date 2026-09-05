@@ -1,232 +1,252 @@
-import React, { useState } from 'react';
-import { ThumbsUp, Plus, Sparkles, MessageSquare, CheckCircle, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Lightbulb, ThumbsUp, Plus, Send, MessageSquare } from 'lucide-react';
 
-interface EventRequest {
+interface PitchItem {
   id: string;
   title: string;
-  description: string;
   category: string;
-  votes: number;
-  hasVoted: boolean;
-  status: 'community_idea' | 'under_review' | 'approved';
-  createdBy: string;
-  createdAt: string;
+  author: string;
+  description: string;
+  upvotes: number;
 }
 
-const INITIAL_REQUESTS: EventRequest[] = [
+const INITIAL_PITCHES: PitchItem[] = [
   {
-    id: '1',
-    title: 'Hands-on Generative AI & Agent Workshop',
-    description: 'We need an in-depth practical session on building autonomous AI agents using LangChain and modern LLM APIs.',
+    id: 'pitch-1',
+    title: 'Inter-College Esports Tournament (Valorant & BGMI)',
+    category: 'Gaming',
+    author: 'Rohan Gupta',
+    description: 'A weekend LAN and online tournament for gaming enthusiasts on campus.',
+    upvotes: 42,
+  },
+  {
+    id: 'pitch-2',
+    title: 'Open Source & Dev-Ops Bootcamp',
     category: 'Technical',
-    votes: 142,
-    hasVoted: false,
-    status: 'under_review',
-    createdBy: 'Rohan Sharma',
-    createdAt: '2 days ago',
+    author: 'Ananya S.',
+    description: 'Hands-on weekend workshop covering Docker, Kubernetes, and Git workflows.',
+    upvotes: 28,
   },
   {
-    id: '2',
-    title: 'Inter-Department E-Sports Tournament (Valorant / BGMI)',
-    description: 'Host a structured weekend LAN / online tournament with proper streaming and campus leaderboard.',
-    category: 'Gaming & Sports',
-    votes: 218,
-    hasVoted: true,
-    status: 'approved',
-    createdBy: 'Ananya Verma',
-    createdAt: '4 days ago',
-  },
-  {
-    id: '3',
-    title: 'UI/UX Portfolio Review & Critique Session',
-    description: 'Bring industry seniors or alum to review student portfolios and give live actionable feedback.',
-    category: 'Design',
-    votes: 89,
-    hasVoted: false,
-    status: 'community_idea',
-    createdBy: 'Priya Patel',
-    createdAt: '1 day ago',
+    id: 'pitch-3',
+    title: 'Campus Photography & Film Making Club',
+    category: 'Clubs',
+    author: 'Karthik Raja',
+    description: 'A proposed club dedicated to photo walks, short film production, and editing masterclasses.',
+    upvotes: 19,
   },
 ];
 
-export default function DemandBoardPage() {
-  const [requests, setRequests] = useState<EventRequest[]>(INITIAL_REQUESTS);
+export function DemandBoardPage() {
+  const [pitches, setPitches] = useState<PitchItem[]>([]);
+  const [upvotedIds, setUpvotedIds] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState('Technical');
   const [newDescription, setNewDescription] = useState('');
 
-  const toggleVote = (id: string) => {
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === id
-          ? {
-              ...req,
-              hasVoted: !req.hasVoted,
-              votes: req.hasVoted ? req.votes - 1 : req.votes + 1,
-            }
-          : req
-      )
-    );
+  // Load persistent pitches and user upvotes
+  useEffect(() => {
+    const savedPitches = localStorage.getItem('demandBoardPitches');
+    const savedUpvotes = localStorage.getItem('demandBoardUpvotes');
+
+    if (savedPitches) {
+      try {
+        setPitches(JSON.parse(savedPitches));
+      } catch (e) {
+        setPitches(INITIAL_PITCHES);
+      }
+    } else {
+      setPitches(INITIAL_PITCHES);
+    }
+
+    if (savedUpvotes) {
+      try {
+        setUpvotedIds(JSON.parse(savedUpvotes));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  const handleUpvote = (id: string) => {
+    const hasUpvoted = upvotedIds.includes(id);
+    const newUpvotedIds = hasUpvoted
+      ? upvotedIds.filter((item) => item !== id)
+      : [...upvotedIds, id];
+
+    const updatedPitches = pitches.map((pitch) => {
+      if (pitch.id === id) {
+        return {
+          ...pitch,
+          upvotes: hasUpvoted ? pitch.upvotes - 1 : pitch.upvotes + 1,
+        };
+      }
+      return pitch;
+    });
+
+    setPitches(updatedPitches);
+    setUpvotedIds(newUpvotedIds);
+
+    localStorage.setItem('demandBoardPitches', JSON.stringify(updatedPitches));
+    localStorage.setItem('demandBoardUpvotes', JSON.stringify(newUpvotedIds));
   };
 
-  const handleCreateRequest = (e: React.FormEvent) => {
+  const handleCreatePitch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newDescription.trim()) return;
 
-    const newReq: EventRequest = {
-      id: Date.now().toString(),
-      title: newTitle,
-      description: newDescription,
+    const userProfile = localStorage.getItem('userProfile');
+    const authorName = userProfile ? JSON.parse(userProfile).name : 'Student';
+
+    const newPitch: PitchItem = {
+      id: `pitch-${Date.now()}`,
+      title: newTitle.trim(),
       category: newCategory,
-      votes: 1,
-      hasVoted: true,
-      status: 'community_idea',
-      createdBy: 'Alex Rivers',
-      createdAt: 'Just now',
+      author: authorName,
+      description: newDescription.trim(),
+      upvotes: 1,
     };
 
-    setRequests([newReq, ...requests]);
+    const updatedPitches = [newPitch, ...pitches];
+    const updatedUpvotes = [...upvotedIds, newPitch.id];
+
+    setPitches(updatedPitches);
+    setUpvotedIds(updatedUpvotes);
+
+    localStorage.setItem('demandBoardPitches', JSON.stringify(updatedPitches));
+    localStorage.setItem('demandBoardUpvotes', JSON.stringify(updatedUpvotes));
+
     setNewTitle('');
     setNewDescription('');
     setShowModal(false);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-            Campus Demand Board <Sparkles className="w-6 h-6 text-amber-400" />
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Lightbulb className="w-6 h-6 text-amber-500" />
+            Demand Board
           </h1>
-          <p className="text-slate-400 mt-1">
-            Request event topics and upvote ideas you want campus clubs to host.
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Pitch new event ideas or upvote proposals you want campus organizers to host.
           </p>
         </div>
 
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-sm flex items-center gap-2 transition self-start sm:self-auto"
+          className="py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-medium transition-all flex items-center gap-2 shadow-md shadow-blue-600/20 shrink-0"
         >
-          <Plus className="w-4 h-4" /> Request New Event
+          <Plus className="w-4 h-4" />
+          <span>Pitch an Idea</span>
         </button>
       </div>
 
-      {/* Requests Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {requests.map((req) => {
+      {/* Pitches List */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {pitches.map((pitch) => {
+          const isUpvoted = upvotedIds.includes(pitch.id);
           return (
             <div
-              key={req.id}
-              className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-slate-700 transition space-y-4"
+              key={pitch.id}
+              className="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex items-start gap-4"
             >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400">
-                    {req.category}
+              <button
+                onClick={() => handleUpvote(pitch.id)}
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
+                  isUpvoted
+                    ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400'
+                    : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300'
+                }`}
+              >
+                <ThumbsUp className={`w-5 h-5 ${isUpvoted ? 'fill-current' : ''}`} />
+                <span className="text-xs font-bold mt-1">{pitch.upvotes}</span>
+              </button>
+
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded-md">
+                    {pitch.category}
                   </span>
-
-                  {req.status === 'approved' && (
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Event Scheduled
-                    </span>
-                  )}
-                  {req.status === 'under_review' && (
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> Under Review
-                    </span>
-                  )}
-                  {req.status === 'community_idea' && (
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1">
-                      <MessageSquare className="w-3 h-3" /> Community Idea
-                    </span>
-                  )}
+                  <span className="text-xs text-slate-400">Pitched by {pitch.author}</span>
                 </div>
-
-                <h3 className="text-lg font-bold text-white mb-2">{req.title}</h3>
-                <p className="text-xs text-slate-400 mb-3">{req.description}</p>
-              </div>
-
-              <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                <div className="text-xs text-slate-500">
-                  <span>By {req.createdBy}</span> • <span>{req.createdAt}</span>
-                </div>
-
-                <button
-                  onClick={() => toggleVote(req.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                    req.hasVoted
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                  }`}
-                >
-                  <ThumbsUp className="w-3.5 h-3.5" />
-                  <span>{req.votes} Votes</span>
-                </button>
+                <h3 className="font-bold text-slate-900 dark:text-white text-base">{pitch.title}</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {pitch.description}
+                </p>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Request Creation Modal */}
+      {/* New Pitch Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-md w-full space-y-4">
-            <h2 className="text-xl font-bold text-white">Submit an Event Request</h2>
-            <form onSubmit={handleCreateRequest} className="space-y-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 max-w-md w-full space-y-4 shadow-2xl">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Pitch a Campus Idea</h2>
+
+            <form onSubmit={handleCreatePitch} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Event Topic / Title</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Title / Event Name
+                </label>
                 <input
                   type="text"
                   required
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g., Cybersecurity & Ethical Hacking Bootcamp"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
+                  placeholder="e.g. AI Film Making Masterclass"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Category</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Category
+                </label>
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="Technical">Technical</option>
+                  <option value="Gaming">Gaming</option>
                   <option value="Cultural">Cultural</option>
-                  <option value="Design">Design</option>
-                  <option value="Gaming & Sports">Gaming & Sports</option>
-                  <option value="Career & Entrepreneurship">Career & Entrepreneurship</option>
+                  <option value="Clubs">Clubs</option>
+                  <option value="Sports">Sports</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Description & Details</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Description
+                </label>
                 <textarea
-                  required
                   rows={3}
+                  required
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  placeholder="Explain why students would attend and what skills or activities should be included..."
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
+                  placeholder="Explain what the event is about and why students would want it..."
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-semibold transition"
+                  className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-medium hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition"
+                  className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-medium hover:bg-blue-500 shadow-md shadow-blue-600/20"
                 >
-                  Post Request
+                  Submit Pitch
                 </button>
               </div>
             </form>
@@ -236,3 +256,5 @@ export default function DemandBoardPage() {
     </div>
   );
 }
+
+export default DemandBoardPage;
