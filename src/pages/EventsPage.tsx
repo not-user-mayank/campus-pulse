@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, CheckCircle, Plus } from 'lucide-react';
+import { Calendar, MapPin, Clock, CheckCircle, Plus, Search } from 'lucide-react';
 
 export interface EventItem {
   id: string;
@@ -18,7 +18,7 @@ export const INITIAL_EVENTS: EventItem[] = [
     date: 'Sept 15, 2026',
     time: '10:00 AM - 01:00 PM',
     location: 'ALC Lab 3, SRM AP',
-    type: 'Workshop',
+    type: 'Technical',
     description: 'Hands-on session covering foundation models and neural networks.',
   },
   {
@@ -27,22 +27,24 @@ export const INITIAL_EVENTS: EventItem[] = [
     date: 'Sept 20, 2026',
     time: '02:00 PM - 04:00 PM',
     location: 'Auditorium Block',
-    type: 'Competition',
+    type: 'Technical',
     description: 'The annual 24-hour flagship hackathon at SRM University AP.',
   },
   {
     id: '3',
-    title: 'Web3 & Security Seminar',
+    title: 'Cultural Night & Band Performance',
     date: 'Sept 28, 2026',
-    time: '11:00 AM - 01:00 PM',
-    location: 'Seminar Hall 2',
-    type: 'Seminar',
-    description: 'Explore smart contract audits and decentralized identity.',
+    time: '06:00 PM - 09:00 PM',
+    location: 'Open Air Theatre',
+    type: 'Cultural',
+    description: 'Live musical performances and battle of the campus bands.',
   },
 ];
 
 export function EventsPage() {
   const [registeredIds, setRegisteredIds] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   useEffect(() => {
     const saved = localStorage.getItem('registeredEvents');
@@ -66,17 +68,56 @@ export function EventsPage() {
     localStorage.setItem('registeredEvents', JSON.stringify(updated));
   };
 
+  const filteredEvents = INITIAL_EVENTS.filter((evt) => {
+    const matchesSearch =
+      evt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      evt.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === 'All' || evt.type === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Campus Events</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Browse and register for upcoming events. Registered events appear automatically in your calendar.
+          Browse, filter, and register for active campus events.
         </p>
       </div>
 
+      {/* Search & Category Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search events or workshops..."
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+          />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+        </div>
+
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          {['All', 'Technical', 'Cultural'].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                selectedCategory === cat
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {INITIAL_EVENTS.map((evt) => {
+        {filteredEvents.map((evt) => {
           const isRegistered = registeredIds.includes(evt.id);
           return (
             <div
@@ -120,13 +161,7 @@ export function EventsPage() {
                       : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20'
                   }`}
                 >
-                  {isRegistered ? (
-                    'Unregister'
-                  ) : (
-                    <>
-                      <Plus className="w-3.5 h-3.5" /> Register Now
-                    </>
-                  )}
+                  {isRegistered ? 'Unregister' : <><Plus className="w-3.5 h-3.5" /> Register Now</>}
                 </button>
               </div>
             </div>
