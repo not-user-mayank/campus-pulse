@@ -1,138 +1,189 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, GraduationCap, Award, Flame, Save, Shield } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { User, Mail, Award, BookOpen, Phone, Hash, Save, CheckCircle2 } from 'lucide-react';
 
-export default function ProfilePage() {
-  const [loading, setLoading] = useState(false);
-  const [profile, setProfile] = useState({
-    full_name: 'Alex Rivers',
-    email: 'alex.rivers@srmist.edu.in',
-    department: 'Computer Science & Engineering',
-    year: '3rd Year',
-    role: 'student',
-    points: 450,
-    badgesCount: 4,
-  });
+interface ProfileData {
+  name: string;
+  email: string;
+  rollNumber: string;
+  department: string;
+  phone: string;
+  bio: string;
+}
 
-  const handleSave = (e: React.FormEvent) => {
+const DEFAULT_PROFILE: ProfileData = {
+  name: 'Pallipamu Mayank',
+  email: 'pallipamu.mayank@srmap.edu.in',
+  rollNumber: 'AP26110130043',
+  department: 'Computer Science & Engineering',
+  phone: '+91 1234567890',
+  bio: 'CSE Undergraduate passionate about Full-Stack Web Development, AI, and competitive programming.',
+};
+
+export function ProfilePage() {
+  const [profile, setProfile] = useState<ProfileData>(DEFAULT_PROFILE);
+  const [isSaved, setIsSaved] = useState(false);
+
+  // Load persistent profile data on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('userProfile');
+    const userEmail = localStorage.getItem('userEmail');
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setProfile((prev) => ({
+          ...parsed,
+          email: userEmail || parsed.email || prev.email,
+        }));
+      } catch (e) {
+        console.error('Failed to parse saved profile:', e);
+      }
+    } else if (userEmail) {
+      setProfile((prev) => ({ ...prev, email: userEmail }));
+    }
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setProfile((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      alert('Profile details updated successfully!');
-    }, 600);
+    localStorage.setItem('userProfile', JSON.stringify(profile));
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 3000);
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="p-6 space-y-6 max-w-4xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold text-white">User Profile</h1>
-        <p className="text-slate-400 mt-1">Manage your account information and view your campus achievements.</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          Student Profile
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Manage your personal details and campus identification info.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Profile Summary Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col items-center text-center space-y-4">
-          <div className="w-24 h-24 rounded-full bg-indigo-600/20 border-2 border-indigo-500 flex items-center justify-center text-3xl font-bold text-indigo-400">
-            {profile.full_name.charAt(0)}
+      {isSaved && (
+        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex items-center gap-2 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
+          <CheckCircle2 className="w-5 h-5 shrink-0" />
+          Profile updated successfully!
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-6 shadow-xs">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row items-center gap-5 border-b pb-6 border-slate-100 dark:border-slate-700">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-md">
+            {profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}
           </div>
+          <div className="text-center sm:text-left space-y-1">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{profile.name}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-1">
+              <Mail className="w-3.5 h-3.5" />
+              {profile.email}
+            </p>
+          </div>
+        </div>
+
+        {/* Input Fields Grid */}
+        <div className="grid gap-5 md:grid-cols-2">
           <div>
-            <h2 className="text-xl font-bold text-white">{profile.full_name}</h2>
-            <p className="text-xs text-slate-400">{profile.email}</p>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              Full Name
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                name="name"
+                value={profile.name}
+                onChange={handleChange}
+                required
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              />
+              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            </div>
           </div>
 
-          <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-xs font-semibold capitalize flex items-center gap-1">
-            <Shield className="w-3.5 h-3.5" /> {profile.role}
-          </span>
-
-          <div className="w-full pt-4 border-t border-slate-800 grid grid-cols-2 gap-2 text-center">
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <p className="text-xs text-slate-400 flex items-center justify-center gap-1 mb-1">
-                <Flame className="w-3.5 h-3.5 text-rose-400" /> Score
-              </p>
-              <p className="text-base font-bold text-white">{profile.points} pts</p>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              Roll / Register Number
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                name="rollNumber"
+                value={profile.rollNumber}
+                onChange={handleChange}
+                required
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              />
+              <Hash className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             </div>
-            <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <p className="text-xs text-slate-400 flex items-center justify-center gap-1 mb-1">
-                <Award className="w-3.5 h-3.5 text-amber-400" /> Badges
-              </p>
-              <p className="text-base font-bold text-white">{profile.badgesCount}</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              Department / Branch
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                name="department"
+                value={profile.department}
+                onChange={handleChange}
+                required
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              />
+              <BookOpen className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              Phone Number
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                name="phone"
+                value={profile.phone}
+                onChange={handleChange}
+                required
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              />
+              <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             </div>
           </div>
         </div>
 
-        {/* Profile Details Form */}
-        <div className="md:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <h3 className="text-lg font-bold text-white mb-4">Account Information</h3>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Full Name</label>
-              <div className="relative">
-                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="text"
-                  value={profile.full_name}
-                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Email Address</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="email"
-                  disabled
-                  value={profile.email}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-950/50 border border-slate-800/50 rounded-lg text-sm text-slate-500 cursor-not-allowed"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Department</label>
-                <div className="relative">
-                  <GraduationCap className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                  <input
-                    type="text"
-                    value={profile.department}
-                    onChange={(e) => setProfile({ ...profile, department: e.target.value })}
-                    className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Year of Study</label>
-                <select
-                  value={profile.year}
-                  onChange={(e) => setProfile({ ...profile, year: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="1st Year">1st Year</option>
-                  <option value="2nd Year">2nd Year</option>
-                  <option value="3rd Year">3rd Year</option>
-                  <option value="4th Year">4th Year</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-800 flex justify-end">
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2 transition disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                {loading ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </form>
+        {/* Bio Input */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            About / Bio
+          </label>
+          <textarea
+            name="bio"
+            rows={3}
+            value={profile.bio}
+            onChange={handleChange}
+            className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+          />
         </div>
-      </div>
+
+        <button
+          type="submit"
+          className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium text-sm transition-colors shadow-md shadow-blue-600/20 flex items-center justify-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          <span>Save Changes</span>
+        </button>
+      </form>
     </div>
   );
 }
+
+export default ProfilePage;

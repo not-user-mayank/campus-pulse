@@ -1,134 +1,139 @@
-import React, { useState } from 'react';
-import { Search, Users, Calendar, CheckCircle, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, CheckCircle2, UserPlus, ShieldCheck } from 'lucide-react';
 
-interface Club {
+interface ClubItem {
   id: string;
   name: string;
   category: string;
+  lead: string;
   membersCount: number;
-  upcomingEventsCount: number;
   description: string;
-  isFollowing?: boolean;
 }
 
-const INITIAL_CLUBS: Club[] = [
+const INITIAL_CLUBS: ClubItem[] = [
   {
-    id: '1',
+    id: 'coding-club',
     name: 'Coding Club',
     category: 'Technical',
-    membersCount: 1240,
-    upcomingEventsCount: 3,
-    description: 'A community of developers building software, hosting hackathons, and learning web3 and AI.',
+    lead: 'Alex Johnson',
+    membersCount: 142,
+    description: 'Fostering competitive programming, hackathons, and open-source projects.',
   },
   {
-    id: '2',
+    id: 'cultural-society',
     name: 'Cultural Society',
     category: 'Cultural',
-    membersCount: 2100,
-    upcomingEventsCount: 2,
-    description: 'Organizing annual campus cultural fests, music performances, and performing arts showcases.',
+    lead: 'Priya Sharma',
+    membersCount: 210,
+    description: 'Organizing flagship music, dance, and theatrical events across campus.',
   },
   {
-    id: '3',
+    id: 'creative-guild',
     name: 'Creative Guild',
-    category: 'Design & Arts',
-    membersCount: 850,
-    upcomingEventsCount: 1,
-    description: 'Bringing together UI/UX designers, visual artists, and animators across campus.',
+    category: 'Design',
+    lead: 'Rohan Verma',
+    membersCount: 88,
+    description: 'A community for UI/UX designers, digital artists, and animators.',
   },
 ];
 
-export default function ClubsPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [clubs, setClubs] = useState<Club[]>(INITIAL_CLUBS);
+export function ClubsPage() {
+  const [joinedClubIds, setJoinedClubIds] = useState<string[]>([]);
 
-  const toggleFollow = (id: string) => {
-    setClubs((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              isFollowing: !c.isFollowing,
-              membersCount: c.isFollowing ? c.membersCount - 1 : c.membersCount + 1,
-            }
-          : c
-      )
-    );
+  // Load persistent memberships on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('joinedClubs');
+    if (saved) {
+      try {
+        setJoinedClubIds(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse saved clubs:', e);
+      }
+    }
+  }, []);
+
+  const toggleJoinClub = (clubId: string) => {
+    let updated: string[];
+    if (joinedClubIds.includes(clubId)) {
+      updated = joinedClubIds.filter((id) => id !== clubId);
+    } else {
+      updated = [...joinedClubIds, clubId];
+    }
+    setJoinedClubIds(updated);
+    localStorage.setItem('joinedClubs', JSON.stringify(updated));
   };
 
-  const filteredClubs = clubs.filter(
-    (club) =>
-      club.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      club.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold text-white">Campus Clubs & Communities</h1>
-        <p className="text-slate-400 mt-1">Explore campus organizations and follow them for event updates.</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          Campus Clubs & Societies
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Discover student clubs and join communities matching your interests.
+        </p>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative max-w-md">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          type="text"
-          placeholder="Search clubs by name or category..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
-        />
-      </div>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {INITIAL_CLUBS.map((club) => {
+          const isJoined = joinedClubIds.includes(club.id);
+          const currentMemberCount = isJoined ? club.membersCount + 1 : club.membersCount;
 
-      {/* Clubs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredClubs.map((club) => (
-          <div
-            key={club.id}
-            className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-slate-700 transition"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400">
-                  {club.category}
-                </span>
-                <span className="text-xs text-slate-400 flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5" /> {club.membersCount}
-                </span>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">{club.name}</h3>
-              <p className="text-xs text-slate-400 mb-4">{club.description}</p>
-            </div>
+          return (
+            <div
+              key={club.id}
+              className="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-3">
+                <div className="flex justify-between items-start">
+                  <span className="px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">
+                    {club.category}
+                  </span>
+                  {isJoined && (
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Member
+                    </span>
+                  )}
+                </div>
 
-            <div className="space-y-3 pt-3 border-t border-slate-800/60">
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                <span>{club.upcomingEventsCount} Upcoming Events</span>
+                <h3 className="font-bold text-lg text-slate-900 dark:text-white">{club.name}</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {club.description}
+                </p>
               </div>
 
-              <button
-                onClick={() => toggleFollow(club.id)}
-                className={`w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
-                  club.isFollowing
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                }`}
-              >
-                {club.isFollowing ? (
-                  <>
-                    <CheckCircle className="w-3.5 h-3.5" /> Following
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-3.5 h-3.5" /> Join Club
-                  </>
-                )}
-              </button>
+              <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-700/50">
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-slate-400" /> Lead: {club.lead}
+                  </span>
+                  <span>{currentMemberCount} Members</span>
+                </div>
+
+                <button
+                  onClick={() => toggleJoinClub(club.id)}
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                    isJoined
+                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/30'
+                      : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20'
+                  }`}
+                >
+                  {isJoined ? (
+                    'Leave Club'
+                  ) : (
+                    <>
+                      <UserPlus className="w-3.5 h-3.5" /> Join Club
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
+
+export default ClubsPage;
