@@ -1,14 +1,23 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
-export const OrganizerRoute = ({ children }: { children: JSX.Element }) => {
-  // Checks if user is logged in as organizer
-  const userRole = localStorage.getItem('user_role') || 'student';
+interface OrganizerRouteProps {
+  children: React.ReactNode;
+}
 
-  if (userRole !== 'organizer') {
-    // Redirects students away from organizer pages to the student dashboard
-    return <Navigate to="/dashboard" replace />;
+export function OrganizerRoute({ children }: OrganizerRouteProps) {
+  const location = useLocation();
+
+  // Check saved user role from localStorage or auth state
+  const userRole = localStorage.getItem('userRole') || 'student';
+  const isOrganizer = userRole === 'organizer' || userRole === 'admin';
+
+  if (!isOrganizer) {
+    // Redirect non-organizers to dashboard or login
+    return <Navigate to="/dashboard" state={{ from: location }} replace />;
   }
 
-  return children;
-};
+  return <>{children}</>;
+}
+
+export default OrganizerRoute;
