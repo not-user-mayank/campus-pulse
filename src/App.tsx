@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { OrganizerRoute } from './components/OrganizerRoute';
 
-// All Page Imports (Aligned Export Types)
+// All Page Imports
 import StudentDashboard from './pages/StudentDashboard';
 import { EventsPage } from './pages/EventsPage';
 import { AcademicCalendarPage } from './pages/AcademicCalendarPage';
@@ -29,6 +29,7 @@ export function App() {
           <Route path="/dashboard" element={<StudentDashboard />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/academic-calendar" element={<AcademicCalendarPage />} />
+          <Route path="/calendar" element={<AcademicCalendarPage />} />
           <Route path="/clubs" element={<ClubsPage />} />
           <Route path="/campus-pass" element={<CampusPassPage />} />
           <Route path="/demand-board" element={<DemandBoardPage />} />
