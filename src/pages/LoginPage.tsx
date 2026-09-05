@@ -12,14 +12,24 @@ export function LoginPage() {
     e.preventDefault();
     setError('');
 
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // 1. Strict Domain Restriction Check
+    const isAllowedDomain =
+      normalizedEmail.endsWith('@srmap.edu.in') ||
+      normalizedEmail.endsWith('@organizer.srmap.edu.in');
+
+    if (!isAllowedDomain) {
+      setError('Access restricted. Please use your official SRM AP email (@srmap.edu.in).');
+      return;
+    }
+
     if (!password.trim()) {
       setError('Please enter your password.');
       return;
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-
-    // Auto-detect role based on email keyword or domain
+    // 2. Auto-detect Role
     const isOrganizerEmail =
       normalizedEmail.includes('organizer') ||
       normalizedEmail.includes('admin') ||
@@ -27,12 +37,12 @@ export function LoginPage() {
 
     const role = isOrganizerEmail ? 'organizer' : 'student';
 
-    // Save auth session and detected role
+    // 3. Save Authentication Session
     localStorage.setItem('userEmail', normalizedEmail);
     localStorage.setItem('userRole', role);
     localStorage.setItem('isAuthenticated', 'true');
 
-    // Redirect to the appropriate portal
+    // 4. Navigate to standard route
     if (role === 'organizer') {
       navigate('/organizer');
     } else {
