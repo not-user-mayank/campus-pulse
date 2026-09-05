@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, CheckCircle, Plus, Search } from 'lucide-react';
+import { Clock, MapPin, CheckCircle, Plus, Search } from 'lucide-react';
 
 export interface EventItem {
   id: string;
   title: string;
-  date: string;
+  date: string; // ISO format (YYYY-MM-DD) for calendar compatibility
   time: string;
   location: string;
   type: string;
@@ -13,36 +13,36 @@ export interface EventItem {
 
 export const INITIAL_EVENTS: EventItem[] = [
   {
-    id: '1',
-    title: 'AI & ML Workshop',
-    date: 'Sept 15, 2026',
-    time: '10:00 AM - 01:00 PM',
-    location: 'ALC Lab 3, SRM AP',
+    id: 'evt-1',
+    title: 'AI & Web3 Hackathon 2026',
+    date: '2026-09-10',
+    time: '10:00 AM - 05:00 PM',
+    location: 'Auditorium Hall A',
     type: 'Technical',
-    description: 'Hands-on session covering foundation models and neural networks.',
+    description: 'Build futuristic decentralised apps and AI agents in a 24-hour hackathon.',
   },
   {
-    id: '2',
-    title: 'HackSRM 2026',
-    date: 'Sept 20, 2026',
+    id: 'evt-2',
+    title: 'Annual Cultural Fest Briefing',
+    date: '2026-09-12',
     time: '02:00 PM - 04:00 PM',
-    location: 'Auditorium Block',
-    type: 'Technical',
-    description: 'The annual 24-hour flagship hackathon at SRM University AP.',
+    location: 'Main Amphitheatre',
+    type: 'Cultural',
+    description: 'Information session and team registration for upcoming annual fest.',
   },
   {
-    id: '3',
-    title: 'Cultural Night & Band Performance',
-    date: 'Sept 28, 2026',
-    time: '06:00 PM - 09:00 PM',
-    location: 'Open Air Theatre',
-    type: 'Cultural',
-    description: 'Live musical performances and battle of the campus bands.',
+    id: 'evt-3',
+    title: 'Design Thinking & UI/UX Workshop',
+    date: '2026-09-18',
+    time: '11:00 AM - 01:00 PM',
+    location: 'Design Lab 204',
+    type: 'Technical',
+    description: 'Learn rapid wireframing and interactive prototyping using modern UI tools.',
   },
 ];
 
 export function EventsPage() {
-  const [registeredIds, setRegisteredIds] = useState<string[]>([]);
+  const [registeredEvents, setRegisteredEvents] = useState<EventItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -50,7 +50,7 @@ export function EventsPage() {
     const saved = localStorage.getItem('registeredEvents');
     if (saved) {
       try {
-        setRegisteredIds(JSON.parse(saved));
+        setRegisteredEvents(JSON.parse(saved));
       } catch (e) {
         console.error(e);
       }
@@ -58,14 +58,17 @@ export function EventsPage() {
   }, []);
 
   const toggleRegister = (event: EventItem) => {
-    let updated: string[];
-    if (registeredIds.includes(event.id)) {
-      updated = registeredIds.filter((id) => id !== event.id);
+    const isAlreadyRegistered = registeredEvents.some((e) => e.id === event.id);
+    let updatedEvents: EventItem[];
+
+    if (isAlreadyRegistered) {
+      updatedEvents = registeredEvents.filter((e) => e.id !== event.id);
     } else {
-      updated = [...registeredIds, event.id];
+      updatedEvents = [...registeredEvents, event];
     }
-    setRegisteredIds(updated);
-    localStorage.setItem('registeredEvents', JSON.stringify(updated));
+
+    setRegisteredEvents(updatedEvents);
+    localStorage.setItem('registeredEvents', JSON.stringify(updatedEvents));
   };
 
   const filteredEvents = INITIAL_EVENTS.filter((evt) => {
@@ -82,32 +85,32 @@ export function EventsPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Campus Events</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Browse, filter, and register for active campus events.
+          Discover, register, and join active campus events.
         </p>
       </div>
 
-      {/* Search & Category Filter Bar */}
+      {/* Filter & Search */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search events or workshops..."
+            placeholder="Search events or clubs..."
             className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
           />
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
         </div>
 
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl shrink-0">
           {['All', 'Technical', 'Cultural'].map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
                 selectedCategory === cat
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {cat}
@@ -116,9 +119,10 @@ export function EventsPage() {
         </div>
       </div>
 
+      {/* Events Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredEvents.map((evt) => {
-          const isRegistered = registeredIds.includes(evt.id);
+          const isRegistered = registeredEvents.some((e) => e.id === evt.id);
           return (
             <div
               key={evt.id}
@@ -130,7 +134,7 @@ export function EventsPage() {
                     {evt.type}
                   </span>
                   {isRegistered && (
-                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded flex items-center gap-1">
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" /> Registered
                     </span>
                   )}
@@ -157,11 +161,11 @@ export function EventsPage() {
                   onClick={() => toggleRegister(evt)}
                   className={`w-full py-2.5 px-4 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
                     isRegistered
-                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-rose-50 hover:text-rose-600'
+                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/30'
                       : 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20'
                   }`}
                 >
-                  {isRegistered ? 'Unregister' : <><Plus className="w-3.5 h-3.5" /> Register Now</>}
+                  {isRegistered ? 'Cancel Registration' : <><Plus className="w-3.5 h-3.5" /> Register Now</>}
                 </button>
               </div>
             </div>
