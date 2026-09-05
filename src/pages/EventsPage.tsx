@@ -1,160 +1,135 @@
 import React, { useState } from 'react';
-import { Search, Filter, Calendar, MapPin, Users, AlertCircle } from 'lucide-react';
 
-interface EventItem {
+interface Event {
   id: string;
   title: string;
-  club: string;
   category: string;
-  location: string;
   date: string;
-  time: string;
+  startTime: string;
+  endTime: string;
+  location: string;
   capacity: number;
   registeredCount: number;
-  description: string;
+  organizer: string;
 }
 
-const MOCK_EVENTS: EventItem[] = [
-  {
-    id: '1',
-    title: 'AI & Web3 Hackathon 2026',
-    club: 'Coding Club',
-    category: 'Technical',
-    location: 'Auditorium Hall A',
-    date: '2026-09-10',
-    time: '10:00 AM - 05:00 PM',
-    capacity: 100,
-    registeredCount: 84,
-    description: 'Build futuristic decentralised apps and AI agents in a 24-hour hackathon session.',
-  },
-  {
-    id: '2',
-    title: 'Annual Cultural Fest Briefing',
-    club: 'Cultural Society',
-    category: 'Cultural',
-    location: 'Main Amphitheatre',
-    date: '2026-09-12',
-    time: '02:00 PM - 04:00 PM',
-    capacity: 200,
-    registeredCount: 200,
-    description: 'Information session and team registration for upcoming annual campus cultural events.',
-  },
-  {
-    id: '3',
-    title: 'Design Thinking & UI/UX Workshop',
-    club: 'Creative Guild',
-    category: 'Design',
-    location: 'Lab 304',
-    date: '2026-09-15',
-    time: '11:00 AM - 01:00 PM',
-    capacity: 50,
-    registeredCount: 32,
-    description: 'Learn rapid wireframing and interactive prototyping using modern tools.',
-  },
-];
+export const EventsPage = () => {
+  const [registeredEventIds, setRegisteredEventIds] = useState<string[]>([]);
+  const [events, setEvents] = useState<Event[]>([
+    {
+      id: '1',
+      title: 'Aloha Freshers Fest',
+      category: 'Cultural',
+      date: '2026-09-11',
+      startTime: '17:00',
+      endTime: '21:00',
+      location: 'University Auditorium',
+      capacity: 500,
+      registeredCount: 498,
+      organizer: 'Directorate of Student Affairs',
+    },
+    {
+      id: '2',
+      title: 'AI & Web3 Hackathon Briefing',
+      category: 'Tech',
+      date: '2026-09-11',
+      startTime: '18:00',
+      endTime: '20:00',
+      location: 'ALC Lab 3',
+      capacity: 60,
+      registeredCount: 60,
+      organizer: 'Dept of CSE',
+    },
+    {
+      id: '3',
+      title: 'PhySpark Physics Workshop',
+      category: 'Academic',
+      date: '2026-09-19',
+      startTime: '10:00',
+      endTime: '13:00',
+      location: 'Science Block Hall B',
+      capacity: 100,
+      registeredCount: 42,
+      organizer: 'Department of Physics',
+    },
+  ]);
 
-export default function EventsPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const handleRegister = (targetEvent: Event) => {
+    // Check if already registered
+    if (registeredEventIds.includes(targetEvent.id)) return;
 
-  const filteredEvents = MOCK_EVENTS.filter((event) => {
-    const matchesSearch =
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.club.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || event.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+    // Time Clash Detection: Same date & overlapping time window
+    const registeredEvents = events.filter((e) => registeredEventIds.includes(e.id));
+    const hasClash = registeredEvents.some((e) => {
+      if (e.date !== targetEvent.date) return false;
+      return targetEvent.startTime < e.endTime && targetEvent.endTime > e.startTime;
+    });
+
+    if (hasClash) {
+      alert(`⚠️ Time Clash Warning: You are already registered for another event on ${targetEvent.date} during this time slot! Double booking is not allowed.`);
+      return;
+    }
+
+    // Capacity & Waitlist Check
+    if (targetEvent.registeredCount >= targetEvent.capacity) {
+      alert(`Joined Waitlist for "${targetEvent.title}"! You will receive a notification if a seat opens up.`);
+      return;
+    }
+
+    // Success Registration
+    setRegisteredEventIds([...registeredEventIds, targetEvent.id]);
+    setEvents(events.map((e) => (e.id === targetEvent.id ? { ...e, registeredCount: e.registeredCount + 1 } : e)));
+    alert(`Successfully registered for "${targetEvent.title}"!`);
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-white">Campus Events</h1>
-        <p className="text-slate-400 mt-1">Discover, register, and join active campus events.</p>
+        <h1 className="text-2xl font-bold text-white">Campus Events</h1>
+        <p className="text-gray-400 text-sm">Discover and register for upcoming university events</p>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search events or clubs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
-          {['All', 'Technical', 'Cultural', 'Design'].map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                selectedCategory === cat
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredEvents.map((event) => {
+        {events.map((event) => {
+          const isRegistered = registeredEventIds.includes(event.id);
           const isFull = event.registeredCount >= event.capacity;
+
           return (
-            <div
-              key={event.id}
-              className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-slate-700 transition"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400">
+            <div key={event.id} className="p-5 bg-gray-800/90 border border-gray-700 rounded-xl space-y-3 flex flex-col justify-between">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
                     {event.category}
                   </span>
-                  <span className="text-xs text-slate-400">{event.club}</span>
+                  <span className="text-xs text-gray-400">{event.organizer}</span>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{event.title}</h3>
-                <p className="text-xs text-slate-400 mb-4 line-clamp-2">{event.description}</p>
+                <h2 className="text-lg font-bold text-white">{event.title}</h2>
+                <div className="text-sm text-gray-300 space-y-1">
+                  <p>📅 {event.date}</p>
+                  <p>⏰ {event.startTime} - {event.endTime}</p>
+                  <p>📍 {event.location}</p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Seats: <span className="font-semibold text-white">{event.registeredCount} / {event.capacity}</span>
+                  </p>
+                </div>
               </div>
 
-              <div className="space-y-3">
-                <div className="space-y-1.5 text-xs text-slate-400">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                    <span>{event.date} • {event.time}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-slate-500" />
-                    <span>{event.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-3.5 h-3.5 text-slate-500" />
-                    <span>
-                      {event.registeredCount} / {event.capacity} Registered
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  className={`w-full py-2 rounded-lg text-xs font-semibold transition ${
-                    isFull
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20'
-                      : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                  }`}
-                >
-                  {isFull ? 'Join Waitlist' : 'Register Now'}
-                </button>
-              </div>
+              <button
+                onClick={() => handleRegister(event)}
+                className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
+                  isRegistered
+                    ? 'bg-green-600/20 text-green-400 border border-green-500/30 cursor-default'
+                    : isFull
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                {isRegistered ? '✓ Registered' : isFull ? 'Join Waitlist' : 'Register Now'}
+              </button>
             </div>
           );
         })}
       </div>
     </div>
   );
-}
+};

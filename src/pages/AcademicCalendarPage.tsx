@@ -1,182 +1,92 @@
 import React, { useState } from 'react';
-import { 
-  Calendar as CalendarIcon, 
-  ChevronLeft, 
-  ChevronRight, 
-  Filter, 
-  BookOpen, 
-  AlertCircle, 
-  Award, 
-  Building2, 
-  Sparkles 
-} from 'lucide-react';
 
-interface AcademicEvent {
+interface CalendarEvent {
   id: string;
   title: string;
-  category: 'academic_milestone' | 'examination' | 'continuous_assessment' | 'holiday' | 'institutional_event' | 'statutory_meeting';
-  start_date: string;
-  end_date: string;
-  is_holiday: boolean;
-  organizing_body: string;
+  date: string;
+  category: 'Academic' | 'Exam' | 'Holiday' | 'Event';
+  day: string;
 }
 
-const mockAcademicEvents: AcademicEvent[] = [
-  {
-    id: '1',
-    title: 'Commencement of Classes (Odd Sem AY 2026-27)',
-    category: 'academic_milestone',
-    start_date: '2026-08-31',
-    end_date: '2026-08-31',
-    is_holiday: false,
-    organizing_body: 'Office of Academic Affairs'
-  },
-  {
-    id: '2',
-    title: 'Midterm Examinations / Assessments',
-    category: 'examination',
-    start_date: '2026-10-05',
-    end_date: '2026-10-08',
-    is_holiday: false,
-    organizing_body: 'Controller of Examinations'
-  },
-  {
-    id: '3',
-    title: 'Mahatma Gandhi Jayanthi',
-    category: 'holiday',
-    start_date: '2026-10-02',
-    end_date: '2026-10-02',
-    is_holiday: true,
-    organizing_body: 'State Government / SRM-AP'
-  },
-  {
-    id: '4',
-    title: 'Aloha Freshers Fest',
-    category: 'institutional_event',
-    start_date: '2026-09-11',
-    end_date: '2026-09-12',
-    is_holiday: false,
-    organizing_body: 'Directorate of Student Affairs'
-  },
-  {
-    id: '5',
-    title: '30th Academic Council Meeting',
-    category: 'statutory_meeting',
-    start_date: '2026-10-30',
-    end_date: '2026-10-30',
-    is_holiday: false,
-    organizing_body: 'University Registrar'
-  }
-];
+export const AcademicCalendarPage = () => {
+  const [filter, setFilter] = useState<'All' | 'Academic' | 'Exam' | 'Holiday' | 'Event'>('All');
 
-export const AcademicCalendarPage: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [currentMonth] = useState<string>('October 2026');
+  // Official SRM University-AP Academic Calendar AY 2026-27
+  const calendarEvents: CalendarEvent[] = [
+    { id: '1', title: 'Commencement of Academic Registration', date: '2026-08-17', day: 'Monday', category: 'Academic' },
+    { id: '2', title: 'Commencement of Classes (Odd Sem)', date: '2026-08-31', day: 'Monday', category: 'Academic' },
+    { id: '3', title: 'Midterm Examinations / Assessments', date: '2026-10-05 to 2026-10-08', day: 'Mon - Thu', category: 'Exam' },
+    { id: '4', title: 'Window for Semester Practical Examinations', date: '2026-11-13 to 2026-11-27', day: 'Fri - Fri', category: 'Exam' },
+    { id: '5', title: 'Last Day of Teaching (Odd Sem)', date: '2026-11-30', day: 'Monday', category: 'Academic' },
+    { id: '6', title: 'Window for End-Term Examinations', date: '2026-12-07 to 2026-12-21', day: 'Mon - Mon', category: 'Exam' },
+    { id: '7', title: 'Winter Break for Students', date: '2026-12-22 to 2027-01-03', day: 'Tue - Sun', category: 'Holiday' },
+    { id: '8', title: 'Date of Result Declaration (Odd Sem)', date: '2027-01-05', day: 'Tuesday', category: 'Exam' },
 
-  const getCategoryBadge = (category: AcademicEvent['category']) => {
-    switch (category) {
-      case 'examination':
-        return <span className="px-2 py-0.5 text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-full flex items-center gap-1"><AlertCircle className="w-3 h-3"/> Exam</span>;
-      case 'academic_milestone':
-        return <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full flex items-center gap-1"><BookOpen className="w-3 h-3"/> Academic</span>;
-      case 'holiday':
-        return <span className="px-2 py-0.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center gap-1"><Award className="w-3 h-3"/> Holiday</span>;
-      case 'institutional_event':
-        return <span className="px-2 py-0.5 text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full flex items-center gap-1"><Sparkles className="w-3 h-3"/> Campus Fest</span>;
-      case 'statutory_meeting':
-        return <span className="px-2 py-0.5 text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full flex items-center gap-1"><Building2 className="w-3 h-3"/> Governance</span>;
-      default:
-        return null;
-    }
-  };
+    { id: '9', title: 'Vinayakachavithi', date: '2026-09-14', day: 'Monday', category: 'Holiday' },
+    { id: '10', title: 'Mahatma Gandhi Jayanthi', date: '2026-10-02', day: 'Friday', category: 'Holiday' },
+    { id: '11', title: 'Vijayadasami / Dussehra', date: '2026-10-20', day: 'Tuesday', category: 'Holiday' },
+    { id: '12', title: 'Christmas', date: '2026-12-25', day: 'Friday', category: 'Holiday' },
+    { id: '13', title: 'Bhogi / Pongal / Sankranthi', date: '2027-01-14 to 2027-01-15', day: 'Thu - Fri', category: 'Holiday' },
+    { id: '14', title: 'Republic Day', date: '2027-01-26', day: 'Tuesday', category: 'Holiday' },
 
-  const filteredEvents = selectedCategory === 'all' 
-    ? mockAcademicEvents 
-    : mockAcademicEvents.filter(e => e.category === selectedCategory);
+    { id: '15', title: 'Aloha Freshers Fest', date: '2026-09-11 to 2026-09-12', day: 'Fri - Sat', category: 'Event' },
+    { id: '16', title: 'Amaravati Literature Festival', date: '2026-10-07 to 2026-10-09', day: 'Wed - Fri', category: 'Event' },
+    { id: '17', title: 'Tech-Fest 2026', date: '2026-11-19 to 2026-11-20', day: 'Thu - Fri', category: 'Event' },
+    { id: '18', title: 'Infinitus Cultural Fest', date: '2027-02-18 to 2027-02-19', day: 'Thu - Fri', category: 'Event' },
+
+    { id: '19', title: 'Commencement of Classes (Even Sem)', date: '2027-01-04', day: 'Monday', category: 'Academic' },
+    { id: '20', title: 'Even Sem Mid-Term Examinations', date: '2027-03-01 to 2027-03-04', day: 'Mon - Thu', category: 'Exam' },
+    { id: '21', title: 'Last Day of Teaching (Even Sem)', date: '2027-04-30', day: 'Friday', category: 'Academic' },
+    { id: '22', title: 'Even Sem End-Term Examinations', date: '2027-05-03 to 2027-05-15', day: 'Mon - Sat', category: 'Exam' },
+    { id: '23', title: 'Commencement of Summer Break', date: '2027-05-22', day: 'Saturday', category: 'Holiday' }
+  ];
+
+  const filteredEvents = filter === 'All' 
+    ? calendarEvents 
+    : calendarEvents.filter(e => e.category === filter);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <CalendarIcon className="w-8 h-8 text-indigo-500" /> Academic Calendar
-          </h1>
-          <p className="text-slate-400 mt-1">
-            Official institutional schedule, examination dates, statutory meetings, and holidays for AY 2026-27.
-          </p>
+          <h1 className="text-2xl font-bold text-white">SRM University-AP Academic Calendar</h1>
+          <p className="text-gray-400 text-sm">Academic Year 2026–2027 Official Timetable</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center gap-4 shrink-0">
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Current Term</p>
-            <p className="text-sm font-bold text-white">Odd Semester (86 Days)</p>
-          </div>
-          <div className="h-8 w-[1px] bg-slate-800" />
-          <div>
-            <p className="text-xs text-slate-400 font-medium">Status</p>
-            <p className="text-sm font-bold text-emerald-400">Active Instruction</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-slate-900 p-4 border border-slate-800 rounded-xl flex flex-col md:flex-row gap-4 justify-between items-center">
-        <div className="flex items-center gap-3">
-          <button className="p-2 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-lg text-slate-300 hover:text-white transition-colors">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <span className="text-base font-bold text-white min-w-[120px] text-center">{currentMonth}</span>
-          <button className="p-2 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-lg text-slate-300 hover:text-white transition-colors">
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto">
-          <Filter className="w-4 h-4 text-slate-500 mr-1 hidden sm:block" />
-          {['all', 'academic_milestone', 'examination', 'holiday', 'institutional_event', 'statutory_meeting'].map((cat) => (
+        <div className="flex gap-2 bg-gray-800 p-1 rounded-lg border border-gray-700">
+          {(['All', 'Academic', 'Exam', 'Holiday', 'Event'] as const).map((cat) => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize whitespace-nowrap transition-colors ${
-                selectedCategory === cat
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+              onClick={() => setFilter(cat)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+                filter === cat ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
               }`}
             >
-              {cat.replace('_', ' ')}
+              {cat}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="space-y-3">
-        {filteredEvents.map((event) => (
-          <div 
-            key={event.id}
-            className="bg-slate-900 border border-slate-800 hover:border-slate-700 p-5 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all"
-          >
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-3">
-                {getCategoryBadge(event.category)}
-                <span className="text-xs text-slate-400 font-mono">{event.organizing_body}</span>
-              </div>
-              <h3 className="text-lg font-bold text-white">{event.title}</h3>
-              <p className="text-xs text-slate-400">
-                Scheduled Window: <span className="text-slate-200 font-medium">{event.start_date}</span> {event.start_date !== event.end_date && ` to ${event.end_date}`}
-              </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredEvents.map((item) => (
+          <div key={item.id} className="p-4 bg-gray-800/90 border border-gray-700 rounded-xl space-y-2">
+            <div className="flex justify-between items-center">
+              <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                item.category === 'Exam' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                item.category === 'Holiday' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                item.category === 'Event' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
+                'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+              }`}>
+                {item.category}
+              </span>
+              <span className="text-xs text-gray-400">{item.day}</span>
             </div>
-
-            <div className="shrink-0 flex items-center gap-2">
-              {event.is_holiday && (
-                <span className="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-semibold rounded-lg border border-amber-500/20">
-                  No Instruction Scheduled
-                </span>
-              )}
-            </div>
+            <h3 className="font-semibold text-white text-base">{item.title}</h3>
+            <p className="text-sm font-medium text-blue-400">📅 {item.date}</p>
           </div>
         ))}
       </div>
     </div>
   );
 };
-
-export default AcademicCalendarPage;
