@@ -12,9 +12,7 @@ import {
   LogOut 
 } from 'lucide-react';
 
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-}
+interface DashboardLayoutProps { children: React.ReactNode; }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const location = useLocation();

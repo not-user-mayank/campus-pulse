@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, BookOpen, Clock, MapPin, AlertCircle } from 'lucide-react';
+import { Calendar, BookOpen, Clock, MapPin, AlertCircle } from 'lucide-react';
 import { AcademicCalendarPage } from './AcademicCalendarPage';
 
 export function CalendarPage() {
   const [activeTab, setActiveTab] = useState<'personal' | 'academic'>('personal');
 
-  // Sample personal schedule derived from registered events
   const personalEvents = [
     {
       id: 1,
@@ -14,7 +13,7 @@ export function CalendarPage() {
       time: '10:00 AM - 01:00 PM',
       location: 'ALC Lab 3, SRM AP',
       type: 'Workshop',
-      status: 'Confirmed'
+      status: 'Confirmed',
     },
     {
       id: 2,
@@ -23,13 +22,12 @@ export function CalendarPage() {
       time: '02:00 PM - 04:00 PM',
       location: 'Auditorium Block',
       type: 'Competition',
-      status: 'Confirmed'
-    }
+      status: 'Confirmed',
+    },
   ];
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header & Tab Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4 border-slate-200 dark:border-slate-800">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Campus Calendars</h1>
@@ -43,18 +41,18 @@ export function CalendarPage() {
             onClick={() => setActiveTab('personal')}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
               activeTab === 'personal'
-                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
-            <CalendarIcon className="w-4 h-4" />
-            My Personal Schedule
+            <Calendar className="w-4 h-4" />
+            My Schedule
           </button>
           <button
             onClick={() => setActiveTab('academic')}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
               activeTab === 'academic'
-                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
@@ -64,7 +62,6 @@ export function CalendarPage() {
         </div>
       </div>
 
-      {/* Tab Content */}
       {activeTab === 'personal' ? (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
@@ -73,15 +70,14 @@ export function CalendarPage() {
           {personalEvents.length === 0 ? (
             <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
               <AlertCircle className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-              <p className="text-slate-600 dark:text-slate-400 font-medium">No upcoming personal events</p>
-              <p className="text-xs text-slate-500">Register for events in the Events tab to see them here.</p>
+              <p className="text-slate-600 dark:text-slate-400 font-medium">No upcoming events</p>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {personalEvents.map((evt) => (
                 <div
                   key={evt.id}
-                  className="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3"
+                  className="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs space-y-3"
                 >
                   <div className="flex justify-between items-start">
                     <span className="px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">
@@ -113,5 +109,3 @@ export function CalendarPage() {
     </div>
   );
 }
-
-export default CalendarPage;
