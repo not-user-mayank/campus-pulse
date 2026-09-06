@@ -1,75 +1,148 @@
-import React from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Calendar,
   Users,
   Ticket,
-  Lightbulb,
+  Compass,
   Bell,
   User,
+  Shield,
   LogOut,
-  ShieldAlert
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 export function DashboardLayout() {
-  const location = useLocation();
+  const [isOrganizerOpen, setIsOrganizerOpen] = useState(false);
+  const navigate = useNavigate();
 
-  // Navigation Links matching paths in App.tsx
-  const navItems = [
+  const mainLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Events', path: '/events', icon: Calendar },
     { name: 'Calendar', path: '/calendar', icon: Calendar },
     { name: 'Clubs', path: '/clubs', icon: Users },
     { name: 'Campus Pass', path: '/campus-pass', icon: Ticket },
-    { name: 'Demand Board', path: '/demand-board', icon: Lightbulb },
+    { name: 'Demand Board', path: '/demand-board', icon: Compass },
     { name: 'Notifications', path: '/notifications', icon: Bell },
     { name: 'Profile', path: '/profile', icon: User },
-    { name: 'Organizer', path: '/organizer', icon: ShieldAlert },
   ];
 
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/login');
+  };
+
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-900">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-          <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">CampusPulse</h1>
+    <div className="flex min-h-screen bg-[#0b0f19] text-slate-100 font-sans">
+      {/* Sidebar */}
+      <aside className="w-64 bg-[#111827] text-slate-300 min-h-screen p-4 flex flex-col justify-between border-r border-slate-800 shrink-0 sticky top-0 h-screen">
+        <div className="space-y-6 overflow-y-auto">
+          {/* Brand Logo */}
+          <div className="flex items-center gap-3 px-3 py-2">
+            <h1 className="text-xl font-bold text-blue-500 tracking-tight">CampusPulse</h1>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="space-y-1">
+            {mainLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-blue-600/20 text-blue-400 font-semibold'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`
+                  }
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{link.name}</span>
+                </NavLink>
+              );
+            })}
+
+            {/* Organizer Section Header & Accordion */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setIsOrganizerOpen(!isOrganizerOpen)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Shield className="w-4 h-4 shrink-0 text-indigo-400" />
+                  <span>Organizer</span>
+                </div>
+                {isOrganizerOpen ? (
+                  <ChevronUp className="w-4 h-4 text-slate-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-500" />
+                )}
+              </button>
+
+              {/* Sub-links */}
+              {isOrganizerOpen && (
+                <div className="ml-7 mt-1 space-y-1 border-l-2 border-slate-800 pl-3">
+                  <NavLink
+                    to="/organizer/board"
+                    className={({ isActive }) =>
+                      `block py-1.5 px-2 rounded-lg text-xs font-medium transition-colors ${
+                        isActive
+                          ? 'text-blue-400 font-bold bg-blue-500/10'
+                          : 'text-slate-400 hover:text-white'
+                      }`
+                    }
+                  >
+                    Demand Board
+                  </NavLink>
+                  <NavLink
+                    to="/organizer/events"
+                    className={({ isActive }) =>
+                      `block py-1.5 px-2 rounded-lg text-xs font-medium transition-colors ${
+                        isActive
+                          ? 'text-blue-400 font-bold bg-blue-500/10'
+                          : 'text-slate-400 hover:text-white'
+                      }`
+                    }
+                  >
+                    Manage Events
+                  </NavLink>
+                  <NavLink
+                    to="/organizer/passes"
+                    className={({ isActive }) =>
+                      `block py-1.5 px-2 rounded-lg text-xs font-medium transition-colors ${
+                        isActive
+                          ? 'text-blue-400 font-bold bg-blue-500/10'
+                          : 'text-slate-400 hover:text-white'
+                      }`
+                    }
+                  >
+                    Approve Passes
+                  </NavLink>
+                </div>
+              )}
+            </div>
+          </nav>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                  isActive
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-slate-200 dark:border-slate-700">
-          <Link
-            to="/login"
-            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors w-full"
+        {/* Logout */}
+        <div className="pt-4 border-t border-slate-800 shrink-0">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-rose-400 hover:bg-rose-500/10 transition-colors"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4 shrink-0" />
             <span>Log Out</span>
-          </Link>
+          </button>
         </div>
       </aside>
 
-      {/* Main Page Render Area */}
+      {/* Main Content View */}
       <main className="flex-1 overflow-y-auto p-6">
         <Outlet />
       </main>
